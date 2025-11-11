@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交院大明白 - AI助手</title>
+    <script src="https://cdn.tailwindcss.com/3.3.3"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        /* 全局CSS重置 */
+
+        
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: white;
+            overflow-x: hidden;
+            background: #000 !important;
+        }
+        
+        .chat-container {
+            height: 60%;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            transition: all 0.5s ease;
+            box-shadow: none !important;
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .chat-container.expanded {
+            height: calc(100vh - 120px);
+            box-shadow: none !important;
+            border: none !important;
+            outline: none !important;
+        }
+        
+        .message-bubble {
+            max-width: 75%;
+            word-wrap: break-word;
+            position: relative;
+        }
+        
+        .user-message {
+            border-radius: 18px 18px 4px 18px;
+            align-self: flex-end;
+            transition: all 0.2s ease;
+        }
+        
+        .ai-message {
+
+            border-radius: 18px 18px 18px 4px;
+            align-self: flex-start;
+            transition: all 0.2s ease;
+        }
+        
+
+        
+        .send-button {
+            transition: all 0.2s ease;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .send-button:active {
+            transform: scale(0.95);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+
+        }
+        
+        .loading-dot {
+            animation: loading 1.4s infinite ease-in-out both;
+        }
+        
+        .loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes loading {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        @media (max-width: 640px) {
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+        
+
+        
+        .welcome-container {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+            transform: scale(1);
+            height: 25%;
+            overflow: hidden;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .welcome-container.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        
+        .icon-container {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .icon-container {
+            transform: scale(1.1);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .ai-avatar {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4f46e5;
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+        }
+        
+        .bg-grid {
+            background-image: none !important;
+            background-size: 0 !important;
+        }
+        
+        .text-balance {
+            text-wrap: balance;
+        }
+        
+        @keyframes messageEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+    </style>
+</head>
+<body class="flex flex-col h-screen bg-grid relative">
+    
+    <div id="bg" class="fixed inset-0 z-[-1]" style="background-color: black !important;
+        background-image: none !important;
+        background-size: 0 !important;
+        background-repeat: no-repeat !important;
+        background-position: 0 0 !important;
+    "></div>
+    <!-- 顶部导航 -->
+    <header class="p-4 border-0 flex items-center justify-between" style="z-index: 1;">
+        <div class="flex items-center" style="height: 5%;">
+            <div class="w-10 h-10 rounded-full bg-gradient(135deg, #4f46e5 0%, #7c3aed 100%) flex items-center justify-center mr-3 ">
+                <img src="./images/loj.png" alt="" width-100px>
+            </div>
+            <span style="color: black;" class="text-xl font-bold">交院大明白</span>
+            <!-- <span class="text-xl font-bold" style="color: black;font-size: 5px;" id="title_text">交院大明白</span> -->
+        </div>
+        <div class="flex space-x-4">
+            <button class="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="设置">
+                <i class="fas fa-cog text-gray-500"></i>
+            </button>
+            <button class="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="历史记录">
+                <i class="fas fa-history text-gray-500"></i>
+            </button>
+        </div>
+    </header>
+    
+    <!-- 欢迎区域 -->
+    <div id="welcome-container" class="welcome-container flex flex-col items-center justify-center text-center" style="margin-top: 1px;">
+
+        <span id="titlefont" style="color: white;"></span>
+        
+        <p class="text-gray-500 max-w-md mb-8 text-balance" style="color: white;padding: 10px;"></p>
+<span id="title_2" style="color: white;"></span>
+        
+        
+    </div>
+    
+
+    <!-- 输入区域 -->
+    <div class="input-container p-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="relative">
+                <div id="app"></div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- 页脚 -->
+
+            <footer class="py-3 text-center text-xs text-gray-400">
+        <div class="mt-2 text-xs text-gray-400 text-center">
+                支持中英文输入，按Shift+Enter换行
+                <p>created by <a href="https://jeffisalone.site" class="text-indigo-500 hover:underline transition-colors">jeff</a></p>
+            </div>
+        
+
+    </footer>
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const welcomeContainer = document.getElementById('welcome-container');
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            
+            // 示例问题列表
+            const sampleQuestions = [
+                "你能帮我查询明天的课程表吗？",
+                "学校图书馆的开放时间是几点？",
+                "校园内哪里可以打印文件？",
+                "如何申请校园网账号？"
+            ];
+            
+            // 示例回答
+            const sampleResponses = {
+                "你能帮我查询明天的课程表吗？": "当然可以！请提供你的学号和专业，我可以为你查询明天的课程安排。",
+                "学校图书馆的开放时间是几点？": "学校图书馆的开放时间为周一至周五 8:00-22:00，周六至周日 9:00-21:00。考试期间可能会有调整，请关注图书馆公告。",
+                "校园内哪里可以打印文件？": "校园内有多个打印点：1. 主教学楼B区1楼；2. 图书馆2楼；3. 学生活动中心1楼。打印费用为A4黑白0.1元/张，彩色1元/张。",
+                "如何申请校园网账号？": "申请校园网账号需要以下步骤：1. 登录学校信息门户；2. 点击'校园网服务'；3. 填写个人信息并提交；4. 等待审核通过后设置密码即可使用。"
+            };
+            
+            // 添加示例问题到快捷功能区
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    const question = sampleQuestions[index];
+                    addUserMessage(question);
+                    hideWelcomeArea();
+                    setTimeout(() => {
+                        addAIMessage(sampleResponses[question] || "感谢你的提问！我正在为你查询相关信息，请稍候...");
+                    }, 500);
+                });
+            });
+            
+            // 发送消息函数
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    addUserMessage(message);
+                    hideWelcomeArea();
+                    messageInput.value = '';
+                    
+                    // 模拟AI回复延迟
+                    setTimeout(() => {
+                        const response = sampleResponses[message] || "感谢你的提问！我正在为你查询相关信息，请稍候...";
+                        addAIMessage(response);
+                    }, 800);
+                }
+            }
+            
+            // 添加用户消息到聊天界面
+            function addUserMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'flex justify-end items-start mb-4 message-enter';
+                messageElement.innerHTML = `
+                    <div class="message-bubble user-message p-4 mr-3">
+                        <p>${message}</p>
+                    </div>
+                    <div class="message-avatar user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                `;
+                chatContainer.appendChild(messageElement);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // 添加AI消息到聊天界面
+            function addAIMessage(message) {
+                // 先添加"正在输入"状态
+                const typingElement = document.createElement('div');
+                typingElement.id = 'typing-indicator';
+                typingElement.className = 'flex items-start mb-4';
+                typingElement.innerHTML = `
+                    <div class="message-avatar ai-avatar mr-3">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-bubble ai-message p-4">
+                        <div class="typing-indicator">
+                            <span class="loading-dot inline-block w-2 h-2 bg-indigo-400 rounded-full mx-0.5"></span>
+                            <span class="loading-dot inline-block w-2 h-2 bg-indigo-400 rounded-full mx-0.5"></span>
+                            <span class="loading-dot inline-block w-2 h-2 bg-indigo-400 rounded-full mx-0.5"></span>
+                        </div>
+                    </div>
+                `;
+                chatContainer.appendChild(typingElement);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // 模拟思考时间后显示回复
+                setTimeout(() => {
+                    // 移除"正在输入"状态
+                    typingElement.remove();
+                    
+                    // 添加实际回复
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'flex items-start mb-4 message-enter';
+                    messageElement.innerHTML = `
+                        <div class="message-avatar ai-avatar mr-3">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-bubble ai-message p-4">
+                            <p>${message}</p>
+                        </div>
+                    `;
+                    chatContainer.appendChild(messageElement);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 1200);
+            }
+            
+            // 隐藏欢迎区域 - 优化版本
+            function hideWelcomeArea() {
+                if (!welcomeContainer.classList.contains('hidden') && !welcomeContainer.classList.contains('hiding')) {
+                    // 添加hiding类以触发动画
+                    welcomeContainer.classList.add('hiding');
+                    
+                    // 动画完成后添加hidden类并移除hiding类
+                    setTimeout(() => {
+                        welcomeContainer.classList.add('hidden');
+                        welcomeContainer.classList.remove('hiding');
+                        chatContainer.classList.add('expanded');
+                    }, 600);
+                }
+            }
+            
+            // 发送按钮点击事件
+            if (sendButton) {
+                sendButton.addEventListener('click', sendMessage);
+            }
+            
+            // 回车键发送消息，Shift+Enter换行
+            if (messageInput) {
+                messageInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+                
+                // 自动调整输入框高度
+                messageInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight < 120 ? this.scrollHeight : 120) + 'px';
+                });
+            }
+            
+            // 添加页面加载动画效果
+            document.body.classList.add('opacity-0');
+            setTimeout(() => {
+                document.body.classList.add('transition-opacity', 'duration-500');
+                document.body.classList.remove('opacity-0');
+            }, 100);
+        });
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

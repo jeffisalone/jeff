@@ -92,7 +92,6 @@ const handleSend = async () => {
     try {
       // 调用流式 API - 优化后的请求方式
       await streamCoze(prompt.value, (chunk: CozeChunk) => {
-        console.log('收到响应块:', chunk);
         if (chunk.type === 'delta' && chunk.content) {
           // 实时追加增量markdown内容
           markdownContent.value += chunk.content;

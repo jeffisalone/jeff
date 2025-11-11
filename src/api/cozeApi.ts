@@ -12,11 +12,7 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
 
   try {
     // 使用原生fetch API替代axios的stream选项，因为浏览器不支持responseType: 'stream'
-<<<<<<< HEAD
     const response = await fetch('https://workspace.jeffisalone.site/coze', {
-=======
-    const response = await fetch('https://47.93.254.56:443/coze', {
->>>>>>> 4bebb840993500ff25e52545a232eb5060e56bd8
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

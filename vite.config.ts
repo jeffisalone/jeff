@@ -17,6 +17,14 @@ export default defineConfig({
     vueJsx(),
     vueDevTools(),
   ],
+  build: {
+  	  rollupOptions: {
+		  input:{
+			  main: './index.html',
+			  a: './a.html'
+		  }
+	  }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

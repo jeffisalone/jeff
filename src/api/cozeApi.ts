@@ -9,10 +9,10 @@ import type { CozeChunk } from '@/types/coze';
  */
 export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => void) => {
   console.log('开始发送流式请求:', { prompt });
-  
+
   try {
     // 使用原生fetch API替代axios的stream选项，因为浏览器不支持responseType: 'stream'
-    const response = await fetch('https://47.93.254.56:3000/coze', {
+    const response = await fetch('https://dump.jeffisalone.site/coze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
       body: JSON.stringify({ prompt }),
       signal: AbortSignal.timeout(30000) // 30秒超时
     });
-    
+
     console.log('流式请求已发送，开始处理响应');
 
     if (!response.ok) {
@@ -36,20 +36,20 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    
+
     // 用于检测是否接收到了任何有效的数据
     let receivedValidData = false;
     let startTime = Date.now();
-    
+
     try {
       while (true) {
         const { done, value } = await reader.read();
-        
+
         console.log('接收到数据块:', { done, value: value ? value.length + ' bytes' : 'null' });
-        
+
         if (done) {
           console.log('流式响应完成');
-          
+
           // 如果缓冲区中还有未处理的数据，尝试处理
           if (buffer.trim()) {
             try {
@@ -66,7 +66,7 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
               }
             }
           }
-          
+
           // 如果整个流中没有接收到有效的completed事件，则手动发送
           if (receivedValidData) {
             console.log('发送完成标记');
@@ -96,7 +96,7 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
               console.log('解析成功:', chunk);
               onChunk(chunk);
               receivedValidData = true;
-              
+
               // 如果是completed类型，结束处理
               if (chunk.type === 'completed') {
                 console.log('接收到完成标记，结束处理');
@@ -126,7 +126,7 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
     }
   } catch (error) {
     console.error('流式请求发送失败:', error);
-    
+
     // 处理fetch API错误
     let errorMessage: string;
     if (error instanceof Error) {
@@ -134,16 +134,16 @@ export const streamCoze = async (prompt: string, onChunk: (chunk: CozeChunk) => 
     } else {
       errorMessage = String(error);
     }
-    
+
     // 处理特定错误类型
     if (errorMessage.includes('AbortError') || errorMessage.includes('timeout')) {
       errorMessage = '请求超时，请检查网络连接和服务器响应时间';
     } else if (errorMessage.includes('NetworkError')) {
       errorMessage = '网络连接错误，请检查您的网络';
     }
-    
-    onChunk({ 
-      type: 'error', 
+
+    onChunk({
+      type: 'error',
       content: `流式请求失败:\n${errorMessage}\n\n请检查:\n1. Flask服务器是否在localhost:3000运行\n2. 网络连接是否正常\n3. 后端API配置是否正确`
     });
     throw new Error(errorMessage);

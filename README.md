@@ -1,4 +1,4 @@
-# 交院大明白 - AI助手项目(这个MD也是AI写的)
+# 交院大明白 - AI助手项目
 这是一个结合Vue 3前端和Flask后端的AI聊天助手应用，提供智能对话和信息查询功能，支持流式响应和Markdown渲染。
 
 ## 项目架构
@@ -8,7 +8,7 @@
 - **构建工具**: Vite
 - **渲染引擎**: 支持Markdown格式化输出
 - **UI组件**: 自定义组件 + Element Plus
-- **动画效果**: GSAP, Motion-V
+- **动画效果**: GSAP, Motion-V, VueBits
 
 ### 后端架构
 - **框架**: Flask (Python)
@@ -17,33 +17,12 @@
 - **API端点**: RESTful设计
 - **AI智能体**: COZE AGENT
 
-## 目录结构
 
-```
-www/
-├── backend/              # Flask后端
-│   ├── utils/           # 工具函数
-│   │   ├── db.py        # 数据库操作
-│   │   └── jiami.py     # 加密工具
-│   ├── templates/       # HTML模板
-│   └── test.py          # 主应用入口
-└── vueApp/              # Vue 3前端
-    ├── src/             # 源代码
-    │   ├── api/         # API接口
-    │   ├── components/  # 组件
-    │   ├── types/       # TypeScript类型
-    │   └── main.ts      # 应用入口
-    ├── public/          # 静态资源
-    ├── package.json     # 依赖配置
-    └── vite.config.ts   # Vite配置
-```
 
 ## 核心功能
 
 ### 1. 流式响应聊天
 - 支持AI回复的实时流式展示
-- 自动滚动到底部功能
-- 优化的Markdown渲染效果
 
 ### 2. 用户交互
 - 简洁的聊天界面
